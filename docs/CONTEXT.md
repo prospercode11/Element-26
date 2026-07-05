@@ -42,3 +42,15 @@ first-launch tour → quiz onboarding flow (gated on localStorage flags), the
 Gloss tap-to-explain jargon component, and the ExerciseFigure/ExercisePreview
 animated pictograms. Also noted the previously-undocumented `Progress` tab
 (training-max history, estimated-1RM trend) and `PaywallScreen`.
+
+## 2026-07-05 — Added GitHub Pages deployment (re-added after revert)
+Requested: Deploy the app to GitHub Pages so it can be opened in a browser
+without running it locally.
+Changed: Set `base: '/Element-26/'` in `vite.config.ts` and added
+`.github/workflows/deploy-pages.yml`, a GitHub Actions workflow that runs
+`npm run build` and deploys `dist/` to GitHub Pages on every push to `main`
+(or manual dispatch). Verified locally that `npm run build` succeeds and
+`dist/index.html` references assets under `/Element-26/...` as expected.
+Once this PR is merged to `main` and Pages is enabled (Settings → Pages →
+Source: "GitHub Actions", one-time, repo admin), the app will be live at
+`https://prospercode11.github.io/Element-26/`.

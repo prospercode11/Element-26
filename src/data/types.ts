@@ -8,6 +8,7 @@ export type Units = 'lb' | 'kg'
 export interface User {
   id: string
   email: string
+  name?: string
   units: Units
   isPro: boolean
 }

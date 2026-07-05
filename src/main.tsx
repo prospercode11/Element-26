@@ -4,12 +4,12 @@ import '@fontsource-variable/space-grotesk'
 import '@fontsource-variable/inter'
 import './styles.css'
 import App from './App'
-import { StoreProvider } from './data/store'
+import { AuthProvider } from './data/auth'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <StoreProvider>
+    <AuthProvider>
       <App />
-    </StoreProvider>
+    </AuthProvider>
   </React.StrictMode>,
 )

@@ -80,3 +80,40 @@ pattern). `src/screens/BuildScreen.tsx`:
 Verified `npx tsc -b` type-checks clean and a full `npm run build` succeeds
 (built in a scratch copy since this sandbox's checked-in `node_modules` has a
 platform-mismatched native rollup binary unrelated to this change).
+
+## 2026-07-05 — Added accounts (sign in/out) + per-user persistence
+Requested: Make it a fully functional app with all buttons working and
+sign-in / sign-out. Context: this will eventually be turned into an IPA for
+the Apple App Store.
+Changed: Audited every screen — almost all buttons were already wired to the
+reducer; the real gaps were no auth (user was hardcoded) and no persistence
+(memory-only state). Added a local, backend-free auth + persistence layer:
+- NEW `src/data/auth.tsx` — `AuthProvider`/`useAuth`. Accounts + session in
+  `localStorage`; passwords salted + SHA-256 hashed via Web Crypto (demo-grade
+  on-device security, not a real server auth). Exposes sign-up / sign-in /
+  sign-out / continue-as-guest, restores the session on load. Written against
+  a small `Auth` interface so it can later be swapped for Supabase/Firebase
+  (and it runs unchanged inside a future Capacitor/WebView iOS wrapper — the
+  IPA target).
+- `src/data/store.tsx` — `StoreProvider` is now keyed to the signed-in
+  account: seeds a fresh 5/3/1 state for new users, loads persisted state for
+  returning ones, and writes to `e26-state-<userId>` on every change (guests
+  stay ephemeral). IDs are now collision-safe (random suffix) so fresh-session
+  IDs never clash with persisted ones.
+- `src/data/types.ts` — added optional `name` to `User`.
+- NEW `src/screens/AuthScreen.tsx` — sign-in / sign-up form + guest option.
+- NEW `src/components/DeviceChrome.tsx` — shared phone frame (notch + status
+  bar) used by both the auth screen and the app, extracted from `App.tsx`.
+- NEW `src/components/ProfileSheet.tsx` — account sheet (identity, units
+  toggle, sign out) opened from a new appbar account button.
+- `src/App.tsx` — split into an auth gate + `AppShell`; mounts the store only
+  once signed in.
+- `src/main.tsx` — wraps the tree in `AuthProvider` (store moved inside the
+  signed-in branch).
+- `src/styles.css` — styled `email`/`password` inputs; added `.auth-screen`,
+  `.auth-divider`, `.profile-id`, `.profile-avatar`.
+Verified end-to-end in a headless browser (Playwright + preview build):
+sign-up → app, password stored hashed (not plaintext), account/session/state
+written to localStorage, units change survives a reload, sign-out → auth
+screen, wrong password → error, sign-in → app, guest → app and correctly
+NOT persisted. `npx tsc -b` clean; full `npm run build` succeeds.

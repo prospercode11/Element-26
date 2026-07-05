@@ -30,16 +30,45 @@ tracking — plus a lifetime **paywall** screen (`PaywallScreen.tsx`).
 Pricing is lifetime-first ($79.99 lifetime + $29.99/yr), positioned between
 Hevy and Liftosaur.
 
+## Accounts & persistence
+
+The app has real **sign-up / sign-in / sign-out** plus a **guest** mode,
+implemented locally (no backend) in `src/data/auth.tsx`:
+
+- Accounts and the active session live in `localStorage`. Passwords are
+  salted + SHA-256 hashed (via the Web Crypto API), never stored in
+  plaintext. This is demo-grade, on-device security — **not** a substitute
+  for a real server-side auth provider.
+- Each account's full app state (programs, training maxes, logged sessions,
+  bookmarks, body weight, units, Pro status) is persisted per-user under an
+  `e26-state-<userId>` key and reloaded on sign-in, so data survives page
+  reloads. Guests are intentionally ephemeral — nothing is saved.
+- `auth.tsx` is written against a small `Auth` interface so this local
+  implementation can be swapped for a Supabase/Firebase backend later (for
+  real cross-device sync) without touching any screen or the store. The same
+  code also runs unchanged inside a future Capacitor/WebView iOS wrapper
+  (the eventual App Store / IPA target).
+
 ## How the code is organized
 
-- `src/App.tsx` — the phone-frame shell: tab bar (Today/Build/Science/
-  Research/Progress), dark/light theme toggle (persisted to
-  `localStorage`), and the first-launch flow (tour → quiz, each
-  skippable/replayable, gated on `localStorage` flags `e26-tour-done` /
-  `e26-quiz-done`).
-- `src/data/store.tsx` — a single React reducer holding all app state
-  (in-memory only, no backend/persistence beyond the theme/tour flags
-  above), seeded from `src/data/mock.ts` with a 5/3/1 BBB program.
+- `src/App.tsx` — an auth gate plus the phone-frame shell. When signed out it
+  renders `AuthScreen`; when signed in it mounts the store for that account
+  and renders the tab bar (Today/Build/Science/Research/Progress), the
+  dark/light theme toggle (persisted to `localStorage`), an account button
+  (opens `ProfileSheet` for units + sign-out), and the first-launch flow
+  (tour → quiz, each skippable/replayable, gated on `localStorage` flags
+  `e26-tour-done` / `e26-quiz-done`).
+- `src/data/auth.tsx` — `AuthProvider` / `useAuth`: local account store,
+  password hashing, session restore, sign-up/in/out and guest mode.
+- `src/data/store.tsx` — a single React reducer holding all app state, keyed
+  to the signed-in account: seeded fresh from `src/data/mock.ts` with a 5/3/1
+  BBB program for new users, loaded from `localStorage` for returning ones,
+  and persisted on every change (except for guests).
+- `src/components/DeviceChrome.tsx` — the shared phone frame (notch + status
+  bar) wrapping both the auth screen and the signed-in app.
+- `src/components/ProfileSheet.tsx` — account bottom-sheet: shows who's signed
+  in, toggles units, and signs out.
+- `src/screens/AuthScreen.tsx` — sign-in / sign-up form with a guest option.
 - `src/data/types.ts` — shared domain types (programs, exercises, sets,
   training maxes, cycles).
 - `src/data/progression.ts` — the five progression rules (`linear-add`,

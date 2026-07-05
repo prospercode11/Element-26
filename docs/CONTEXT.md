@@ -29,3 +29,16 @@ themselves.
 Changed: Added `docs/ABOUT.md` (product/repo overview) and `docs/CONTEXT.md`
 (this running log), each stating that they must be kept current going
 forward.
+
+## 2026-07-05 — Enriched ABOUT.md from actual code inspection
+Requested: Look at the code and describe what it's about in ABOUT.md /
+CONTEXT.md (not just the README's product framing).
+Changed: Read through `src/` (App.tsx, data/store.tsx, data/types.ts,
+data/progression.ts, data/importParser.ts, screens/*, components/*) and added
+a "How the code is organized" section to `docs/ABOUT.md` covering: the
+reducer-based in-memory store seeded from mock.ts, the 5 progression rules,
+the import parser, the phone-frame shell with theme persistence, the
+first-launch tour → quiz onboarding flow (gated on localStorage flags), the
+Gloss tap-to-explain jargon component, and the ExerciseFigure/ExercisePreview
+animated pictograms. Also noted the previously-undocumented `Progress` tab
+(training-max history, estimated-1RM trend) and `PaywallScreen`.

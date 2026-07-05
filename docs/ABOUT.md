@@ -18,8 +18,44 @@ runs in the browser inside a phone frame and implements five product pillars:
 5. **Study search / database** (`Research` → Study Search) — filterable index,
    for/against breakdowns on contested topics.
 
+There's also a **Progress** tab (`ProgressScreen.tsx`) — training-max history,
+estimated-1RM trend (Epley formula, `src/data/progression.ts`), and cycle-week
+tracking — plus a lifetime **paywall** screen (`PaywallScreen.tsx`).
+
 Pricing is lifetime-first ($79.99 lifetime + $29.99/yr), positioned between
 Hevy and Liftosaur.
+
+## How the code is organized
+
+- `src/App.tsx` — the phone-frame shell: tab bar (Today/Build/Science/
+  Research/Progress), dark/light theme toggle (persisted to
+  `localStorage`), and the first-launch flow (tour → quiz, each
+  skippable/replayable, gated on `localStorage` flags `e26-tour-done` /
+  `e26-quiz-done`).
+- `src/data/store.tsx` — a single React reducer holding all app state
+  (in-memory only, no backend/persistence beyond the theme/tour flags
+  above), seeded from `src/data/mock.ts` with a 5/3/1 BBB program.
+- `src/data/types.ts` — shared domain types (programs, exercises, sets,
+  training maxes, cycles).
+- `src/data/progression.ts` — the five progression rules (`linear-add`,
+  `tm-cycle-bump`, `amrap-autoreg`, `gzclp-stage`, `none`), plate rounding,
+  Epley 1RM estimation, and RPE-to-%1RM mapping.
+- `src/data/importParser.ts` — deterministic recognizers that turn pasted
+  program text (5/3/1, nSuns, GZCLP, generic %-tables) into a structured,
+  auto-progressing draft for the AI Import flow.
+- `src/screens/*.tsx` — one file per tab (`TodayScreen`, `BuildScreen`,
+  `ScienceScreen`, `ResearchScreen`, `ProgressScreen`) plus `PaywallScreen`.
+- `src/components/ui.tsx` — shared primitives (cards, badges, the app logo).
+- `src/components/Tour.tsx` — first-launch slide walkthrough explaining
+  percentage-based programming in plain language.
+- `src/components/Quiz.tsx` — a short onboarding quiz shown after the tour.
+- `src/components/Gloss.tsx` — tap-to-explain jargon: terms like TM, AMRAP,
+  RPE render with a dotted underline and open a plain-language definition
+  sheet on tap, so the UI stays clean for experienced lifters but is still
+  learnable for beginners.
+- `src/components/ExerciseFigure.tsx` / `ExercisePreview.tsx` — minimal
+  animated line-art pictograms per exercise (body in current text color,
+  bar/load in the ember accent) used in the exercise library and previews.
 
 See the main [README.md](../README.md) for run instructions, the progression
 engine rules, and repo structure.

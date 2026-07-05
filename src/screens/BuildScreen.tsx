@@ -7,10 +7,13 @@ import {
   ListChecks,
   LoaderCircle,
   Lock,
+  Sparkles,
+  SlidersHorizontal,
   Target,
   TriangleAlert,
 } from 'lucide-react'
 import { Banner, Card } from '../components/ui'
+import Gloss from '../components/Gloss'
 import { useStore, latestTM } from '../data/store'
 import { EXERCISES, exerciseById } from '../data/mock'
 import { SAMPLE_PASTES } from '../data/importParser'
@@ -31,6 +34,13 @@ export default function BuildScreen({
     <div className="screen-pad">
       <h2 className="section">Program Builder</h2>
       <p className="lead">Paste a spreadsheet or build a scheme visually — zero scripting.</p>
+      <Banner kind="info" icon={<Info size={16} />}>
+        <b>New here? Three ways to get a program:</b> <b>Import</b> pastes one in for you
+        (paste a spreadsheet or a program name and it reads it). <b>Visual builder</b> lets
+        you tap together sets and reps by hand. <b>Training maxes</b> are the numbers
+        everything else is calculated from — worth setting first if you're starting from
+        scratch.
+      </Banner>
       {openQuiz && (
         <button className="btn full" style={{ marginBottom: 14 }} onClick={openQuiz}>
           <ListChecks size={16} />
@@ -77,6 +87,11 @@ function ImportTab({ openPaywall }: { openPaywall: () => void }) {
     <>
       {!draft && (
         <Card>
+          <div className="tiny faint" style={{ lineHeight: 1.6, marginBottom: 12 }}>
+            <b>How this works:</b> (1) paste a program below — a full spreadsheet, or just
+            its name, (2) tap "Draft my program" and the app structures it into weeks, days,
+            and sets, (3) review the draft and save it. Nothing is saved until you approve it.
+          </div>
           <div className="field">
             <label>Paste a program — 5/3/1, nSuns, GZCLP, or any percentage table</label>
             <textarea
@@ -108,8 +123,7 @@ function ImportTab({ openPaywall }: { openPaywall: () => void }) {
             )}
           </button>
           <div className="tiny faint mt12" style={{ lineHeight: 1.55 }}>
-            The draft is structured for review — nothing saves until you approve it. Screenshots
-            work too: the production pipeline runs OCR first, then the same parser.
+            Screenshots work too: the production pipeline runs OCR first, then the same parser.
           </div>
         </Card>
       )}
@@ -220,60 +234,159 @@ function BuilderTab() {
   )
 }
 
+// Beginner-friendly presets — plain-language names standing in for raw numbers.
+const INTENSITY_PRESETS: { label: string; value: number; blurb: string }[] = [
+  { label: 'Light', value: 65, blurb: 'An easier weight — good for warming up or a recovery day.' },
+  { label: 'Moderate', value: 75, blurb: 'A solid working weight. Most sets in a program sit here.' },
+  { label: 'Heavy', value: 85, blurb: 'A challenging top set — this is where most strength is built.' },
+]
+const REP_PRESETS: { label: string; sets: number; reps: number; blurb: string }[] = [
+  { label: '5 × 5 — Strength', sets: 5, reps: 5, blurb: 'Heavier weight, fewer reps — builds raw strength.' },
+  { label: '3 × 8 — Size', sets: 3, reps: 8, blurb: 'Moderate weight, more reps — good for muscle growth.' },
+  { label: '3 × 10 — Size', sets: 3, reps: 10, blurb: 'Lighter and higher-rep — also builds muscle, easier on joints.' },
+]
+
 // A live, no-code scheme editor (local preview — demonstrates the builder UX).
 function SlotEditor() {
   const { state } = useStore()
+  const [mode, setMode] = useState<'simple' | 'advanced'>('simple')
   const [exId, setExId] = useState(EXERCISES[0].id)
   const [schemeType, setSchemeType] = useState<SchemeType>('percent')
   const [value, setValue] = useState(85)
   const [reps, setReps] = useState(5)
   const [sets, setSets] = useState(3)
+  const [amrap, setAmrap] = useState(false)
   const [rule, setRule] = useState(PROGRESSION_RULES[0].id)
 
   const tm = latestTM(state, exId)
+  const repsLabel = `${reps}${amrap ? '+' : ''}`
   const preview =
     schemeType === 'percent'
-      ? `${sets}×${reps} at ${value}% → ${Math.round((tm * value) / 100)} ${state.user.units}`
+      ? `${sets}×${repsLabel} at ${value}% → ${Math.round((tm * value) / 100)} ${state.user.units}`
       : schemeType === 'rpe'
-        ? `${sets}×${reps} at RPE ${value}`
-        : `${sets}×${reps} at ${value} ${state.user.units}`
+        ? `${sets}×${repsLabel} at RPE ${value}`
+        : `${sets}×${repsLabel} at ${value} ${state.user.units}`
 
   return (
     <Card title="Add a set scheme">
+      <div className="tiny faint" style={{ lineHeight: 1.5, marginBottom: 12 }}>
+        A <Gloss term="scheme">set scheme</Gloss> is just how a lift gets loaded on a given
+        day: which lift, how heavy, how many sets and reps, and how it grows over time.
+      </div>
+
+      <div className="row wrap" style={{ marginBottom: 14 }}>
+        <button
+          className={`chip tap ${mode === 'simple' ? 'active' : ''}`}
+          onClick={() => setMode('simple')}
+        >
+          <Sparkles size={14} /> Simple
+        </button>
+        <button
+          className={`chip tap ${mode === 'advanced' ? 'active' : ''}`}
+          onClick={() => setMode('advanced')}
+        >
+          <SlidersHorizontal size={14} /> Advanced (exact numbers)
+        </button>
+      </div>
+
       <div className="field">
-        <label>Lift</label>
+        <label>Step 1 — Which lift?</label>
         <select value={exId} onChange={(e) => setExId(e.target.value)}>
           {EXERCISES.map((e) => (
             <option key={e.id} value={e.id}>{e.name}{e.isMainLift ? ' (main)' : ''}</option>
           ))}
         </select>
       </div>
-      <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
-        <div className="field" style={{ flex: 1 }}>
-          <label>Scheme</label>
-          <select value={schemeType} onChange={(e) => setSchemeType(e.target.value as SchemeType)}>
-            <option value="percent">% of training max</option>
-            <option value="rpe">Target RPE</option>
-            <option value="weight">Straight weight</option>
-          </select>
-        </div>
-        <div className="field" style={{ width: 88 }}>
-          <label>{schemeType === 'percent' ? 'Percent' : schemeType === 'rpe' ? 'RPE' : 'Load'}</label>
-          <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} />
-        </div>
-      </div>
-      <div className="row" style={{ gap: 8 }}>
-        <div className="field" style={{ flex: 1 }}>
-          <label>Sets</label>
-          <input type="number" value={sets} onChange={(e) => setSets(Number(e.target.value))} />
-        </div>
-        <div className="field" style={{ flex: 1 }}>
-          <label>Reps</label>
-          <input type="number" value={reps} onChange={(e) => setReps(Number(e.target.value))} />
-        </div>
-      </div>
+
+      {mode === 'simple' ? (
+        <>
+          <div className="field">
+            <label>Step 2 — How heavy?</label>
+            <div className="row wrap" style={{ marginBottom: 6 }}>
+              {INTENSITY_PRESETS.map((p) => (
+                <button
+                  key={p.label}
+                  className={`chip tap ${schemeType === 'percent' && value === p.value ? 'active' : ''}`}
+                  onClick={() => {
+                    setSchemeType('percent')
+                    setValue(p.value)
+                  }}
+                >
+                  {p.label} ({p.value}%)
+                </button>
+              ))}
+            </div>
+            <div className="tiny faint">
+              {INTENSITY_PRESETS.find((p) => p.value === value)?.blurb ?? 'A percent of your training max.'}
+            </div>
+          </div>
+
+          <div className="field">
+            <label>Step 3 — How many sets and reps?</label>
+            <div className="row wrap" style={{ marginBottom: 6 }}>
+              {REP_PRESETS.map((p) => (
+                <button
+                  key={p.label}
+                  className={`chip tap ${sets === p.sets && reps === p.reps ? 'active' : ''}`}
+                  onClick={() => {
+                    setSets(p.sets)
+                    setReps(p.reps)
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <div className="tiny faint">
+              {REP_PRESETS.find((p) => p.sets === sets && p.reps === reps)?.blurb ??
+                'Pick a rep range, or fine-tune it in Advanced mode.'}
+            </div>
+          </div>
+
+          <label className="row" style={{ gap: 8, marginBottom: 12, cursor: 'pointer' }}>
+            <input type="checkbox" checked={amrap} onChange={(e) => setAmrap(e.target.checked)} />
+            <span className="tiny">
+              Make the last set an <Gloss term="amrap">AMRAP</Gloss> (go until you can't)
+            </span>
+          </label>
+        </>
+      ) : (
+        <>
+          <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Step 2 — <Gloss term="scheme">Scheme</Gloss></label>
+              <select value={schemeType} onChange={(e) => setSchemeType(e.target.value as SchemeType)}>
+                <option value="percent">% of training max</option>
+                <option value="rpe">Target RPE</option>
+                <option value="weight">Straight weight</option>
+              </select>
+            </div>
+            <div className="field" style={{ width: 88 }}>
+              <label>{schemeType === 'percent' ? 'Percent' : schemeType === 'rpe' ? 'RPE' : 'Load'}</label>
+              <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} />
+            </div>
+          </div>
+          <div className="row" style={{ gap: 8 }}>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Step 3 — Sets</label>
+              <input type="number" value={sets} onChange={(e) => setSets(Number(e.target.value))} />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Reps</label>
+              <input type="number" value={reps} onChange={(e) => setReps(Number(e.target.value))} />
+            </div>
+          </div>
+          <label className="row" style={{ gap: 8, marginBottom: 12, cursor: 'pointer' }}>
+            <input type="checkbox" checked={amrap} onChange={(e) => setAmrap(e.target.checked)} />
+            <span className="tiny">
+              Last set is an <Gloss term="amrap">AMRAP</Gloss> (go until you can't)
+            </span>
+          </label>
+        </>
+      )}
+
       <div className="field">
-        <label>Progression rule</label>
+        <label>Step 4 — <Gloss term="progression">How should it grow over time?</Gloss></label>
         <select value={rule} onChange={(e) => setRule(e.target.value as any)}>
           {PROGRESSION_RULES.map((r) => (
             <option key={r.id} value={r.id}>{r.label}</option>
@@ -298,8 +411,10 @@ function MaxesTab() {
   return (
     <>
       <Banner kind="info" icon={<Info size={16} />}>
-        Every working weight in the app is computed from these. Set each training max to roughly
-        90% of a true 1RM.
+        Every working weight in the app is computed from these — not sure what a{' '}
+        <Gloss term="tm">training max</Gloss> is? Tap it. Don't know your true max? A safe
+        starting guess is a weight you could lift for about 5 solid reps, times roughly 1.15.
+        You can always nudge it up or down with the +/− buttons below as you get a feel for it.
       </Banner>
       {mains.map((ex) => {
         const tm = latestTM(state, ex.id)

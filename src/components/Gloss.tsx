@@ -18,6 +18,14 @@ const DEFS = {
     title: 'RPE (effort, 1–10)',
     body: 'Rating of Perceived Exertion. 10 = you couldn’t have done one more rep; 8 = you had two left in the tank. Logging it after a set helps the app spot fatigue building up and time your recovery weeks.',
   },
+  scheme: {
+    title: 'Set scheme',
+    body: 'How a lift gets loaded on a given day — how many sets, how many reps, and how heavy (a percent of your training max, a target RPE, or a flat weight). This is the recipe the app turns into the actual numbers you see in your workout log.',
+  },
+  progression: {
+    title: 'Progression rule',
+    body: 'The formula that decides how your training max changes after a session or cycle — so your weights climb (or hold, or drop) on their own instead of you doing the math. Pick one and the app applies it automatically every time you finish a workout.',
+  },
 } as const
 
 export type GlossTerm = keyof typeof DEFS

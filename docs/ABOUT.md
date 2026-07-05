@@ -11,7 +11,12 @@ runs in the browser inside a phone frame and implements five product pillars:
    live-computed working weights, auto-progression on session finish.
 2. **No-code program builder** (`Build` tab) — AI Import parser for named
    programs (5/3/1, nSuns, GZCLP, generic %-tables), visual builder, training
-   maxes.
+   maxes. The visual builder defaults to a **Simple mode** (plain-language
+   presets: Light/Moderate/Heavy intensity, "5×5 — Strength" style rep
+   schemes) with an **Advanced** toggle that reveals raw percent/RPE/weight
+   and set/rep number inputs for experienced lifters. Every screen leads with
+   plain-language "how this works" copy, and jargon (training max, scheme,
+   progression rule, AMRAP, RPE) is tap-to-explain via `Gloss.tsx`.
 3. **Science coaching layer** (`Science` tab) — volume landmarks, fatigue-driven
    deload readiness, evidence-tagged coaching tips, exercise library.
 4. **News & research** (`Research` → Feed) — plain-language study cards.
@@ -50,9 +55,9 @@ Hevy and Liftosaur.
   percentage-based programming in plain language.
 - `src/components/Quiz.tsx` — a short onboarding quiz shown after the tour.
 - `src/components/Gloss.tsx` — tap-to-explain jargon: terms like TM, AMRAP,
-  RPE render with a dotted underline and open a plain-language definition
-  sheet on tap, so the UI stays clean for experienced lifters but is still
-  learnable for beginners.
+  RPE, set scheme, and progression rule render with a dotted underline and
+  open a plain-language definition sheet on tap, so the UI stays clean for
+  experienced lifters but is still learnable for beginners.
 - `src/components/ExerciseFigure.tsx` / `ExercisePreview.tsx` — minimal
   animated line-art pictograms per exercise (body in current text color,
   bar/load in the ember accent) used in the exercise library and previews.

@@ -54,3 +54,29 @@ Changed: Set `base: '/Element-26/'` in `vite.config.ts` and added
 Once this PR is merged to `main` and Pages is enabled (Settings → Pages →
 Source: "GitHub Actions", one-time, repo admin), the app will be live at
 `https://prospercode11.github.io/Element-26/`.
+
+## 2026-07-05 — Simplified the Program Builder for beginners
+Requested: Make the program builder way simpler for beginners and explain
+everything about it in the app.
+Changed: `src/components/Gloss.tsx` — added `scheme` and `progression`
+tap-to-explain glossary terms (matching the existing `tm`/`amrap`/`rpe`
+pattern). `src/screens/BuildScreen.tsx`:
+- Added a persistent plain-language banner at the top of the Build screen
+  explaining what each of the 3 sub-tabs (Import / Visual builder / Training
+  maxes) does.
+- Import tab: added a numbered "how this works" explainer (paste → draft →
+  review/save) above the paste box.
+- Training maxes tab: wrapped "training max" in the `tm` Gloss term and added
+  a plain-language starting-point suggestion for lifters who don't know their
+  max.
+- Visual builder (`SlotEditor`): rebuilt as a step-by-step flow (Step 1
+  lift → Step 2 intensity → Step 3 sets/reps → Step 4 progression) with a
+  **Simple** mode (default) using plain-language presets — Light/Moderate/
+  Heavy intensity chips and "5×5 — Strength" / "3×8 — Size" / "3×10 — Size"
+  rep-scheme chips, each with a one-line explanation of what it's for — plus
+  an AMRAP checkbox. An **Advanced** toggle reveals the original raw percent/
+  RPE/weight and numeric set/rep inputs for experienced users. Progression
+  rule and scheme labels are now Gloss-wrapped.
+Verified `npx tsc -b` type-checks clean and a full `npm run build` succeeds
+(built in a scratch copy since this sandbox's checked-in `node_modules` has a
+platform-mismatched native rollup binary unrelated to this change).

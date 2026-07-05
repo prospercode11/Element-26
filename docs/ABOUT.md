@@ -57,14 +57,6 @@ Hevy and Liftosaur.
   animated line-art pictograms per exercise (body in current text color,
   bar/load in the ember accent) used in the exercise library and previews.
 
-## Deployment
-
-The app can be previewed via GitHub Pages: `.github/workflows/deploy-pages.yml`
-builds the app and deploys `dist/` on every push to `main` (requires Pages
-enabled in repo Settings → Pages → Source: "GitHub Actions"). `vite.config.ts`
-sets `base: '/Element-26/'` so built asset paths resolve under the
-`https://<owner>.github.io/Element-26/` subpath.
-
 See the main [README.md](../README.md) for run instructions, the progression
 engine rules, and repo structure.
 

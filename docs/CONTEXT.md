@@ -42,3 +42,13 @@ first-launch tour → quiz onboarding flow (gated on localStorage flags), the
 Gloss tap-to-explain jargon component, and the ExerciseFigure/ExercisePreview
 animated pictograms. Also noted the previously-undocumented `Progress` tab
 (training-max history, estimated-1RM trend) and `PaywallScreen`.
+
+## 2026-07-05 — Added GitHub Pages deployment
+Requested: Be able to preview the app via GitHub Pages instead of running it
+locally.
+Changed: Set `base: '/Element-26/'` in `vite.config.ts` (required for asset
+paths to resolve under the `https://<owner>.github.io/Element-26/` subpath),
+and added `.github/workflows/deploy-pages.yml` — a GitHub Actions workflow
+that builds with `npm run build` and deploys `dist/` to GitHub Pages on every
+push to `main` (or manual dispatch). Requires enabling Pages in the repo
+Settings → Pages → Source: "GitHub Actions" (one-time, done by a repo admin).

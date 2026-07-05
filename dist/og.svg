@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0d0e10"/>
+  <rect x="90" y="135" width="360" height="360" rx="48" fill="#131518"/>
+  <rect x="104" y="149" width="332" height="332" rx="36" fill="none" stroke="#e05a2b" stroke-width="10"/>
+  <text x="140" y="230" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="64" font-weight="600" fill="#8b8e93">26</text>
+  <text x="270" y="400" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-weight="700" font-size="170" fill="#eeedea">Fe</text>
+  <text x="530" y="290" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-weight="700" font-size="72" fill="#eeedea">Element 26</text>
+  <text x="533" y="360" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="34" fill="#a3a5a8">Training log &amp; program builder for</text>
+  <text x="533" y="408" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="34" fill="#a3a5a8">percentage-based lifting programs.</text>
+</svg>

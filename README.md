@@ -81,3 +81,4 @@ src/
 - Intentionally out of scope for v1 (per spec): social feed, from-scratch AI coach, Watch app,
   form-check video library, nutrition tracking, streaks/gamification, a general scripting escape hatch.
 # Element-26
+# Element-26

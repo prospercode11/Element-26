@@ -188,3 +188,12 @@ system prompt (`api/generate-program.ts`) with an explicit evidence-based core
 principle (volume landmarks MEV/MAV/MRV, load–goal matching, ~2x/week
 frequency, progressive overload + autoregulation, no fads/pseudo-science) and
 a requirement to state the evidence-based rationale in the program's notes.
+
+## 2026-07-06 — Host-aware base path so the app can deploy to Vercel
+Requested: How to set up the Claude API proxy — needed the app to work when
+deployed to Vercel (where the AI proxy lives), not only GitHub Pages.
+Changed: `vite.config.ts` now sets `base` conditionally — `/` when building on
+Vercel (`process.env.VERCEL`), `/Element-26/` otherwise (GitHub Pages / local).
+This lets the whole app (frontend + `api/` proxy) deploy to Vercel at the root
+with same-origin `/api/generate-program` and no VITE_AI_ENDPOINT/CORS setup,
+while the existing GitHub Pages deploy keeps working unchanged.

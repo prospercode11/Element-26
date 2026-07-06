@@ -368,7 +368,8 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; ba
 
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 .field label { font-size: 12.5px; color: var(--text-2); font-weight: 550; }
-input[type='text'], input[type='number'], textarea, select {
+input[type='text'], input[type='number'], input[type='email'], input[type='password'],
+textarea, select {
   background: var(--bg-elev); border: 1px solid var(--line); color: var(--text);
   border-radius: var(--r-sm); padding: 12px 13px; font-size: 15px;
   font-family: inherit; width: 100%;
@@ -688,3 +689,27 @@ h2.section {
 .debate-col h4 { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; font-weight: 700; }
 .debate-col.for h4 { color: var(--good); }
 .debate-col.against h4 { color: var(--bad); }
+
+/* ---- Auth screen ----------------------------------------------------------- */
+
+.auth-screen { display: flex; flex-direction: column; padding-top: 30px; }
+.auth-brand { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.auth-brand .section { margin-bottom: 4px; }
+.auth-brand .lead { text-align: center; max-width: 300px; }
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-3); font-size: 12px; margin: 16px 0;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--line);
+}
+
+/* ---- Profile sheet --------------------------------------------------------- */
+
+.profile-id { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.profile-avatar {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--ember-soft); color: var(--ember-hi);
+  border: 1px solid var(--ember-line);
+}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useReducer } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
 import type {
   BodyWeight,
   Bookmark,
@@ -12,11 +12,20 @@ import type {
   User,
 } from './types'
 import { applyProgression, computeWeight } from './progression'
+import type { AuthUser } from './auth'
 import type { ImportDraft } from './importParser'
 import { parseImport } from './importParser'
 
+// Collision-safe IDs: a short random suffix means IDs generated in a fresh
+// session never clash with ones already living in a user's persisted state.
 let counter = 1
-const uid = (p: string) => `${p}-${counter++}`
+function uid(p: string): string {
+  const rand =
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID().slice(0, 8)
+      : Math.floor(Math.random() * 0xffffffff).toString(16)
+  return `${p}-${counter++}-${rand}`
+}
 
 const DAY_MS = 86_400_000
 const isoDaysAgo = (n: number) => new Date(Date.now() - n * DAY_MS).toISOString().slice(0, 10)
@@ -94,10 +103,19 @@ interface State {
   pendingDraft: ImportDraft | null
 }
 
-function initState(): State {
-  const user: User = { id: 'u1', email: 'ruser1819@gmail.com', units: 'lb', isPro: false }
+// A fresh, fully-populated starting state for a given account — so a brand-new
+// user lands on a working app (a seeded 5/3/1 program, training-max history,
+// session streak) rather than empty screens.
+function seededState(account: AuthUser): State {
+  const user: User = {
+    id: account.id,
+    email: account.email,
+    name: account.name,
+    units: 'lb',
+    isPro: false,
+  }
   const program: Program = {
-    id: 'p1',
+    id: uid('p'),
     userId: user.id,
     name: '5/3/1 Boring But Big',
     lengthInWeeks: 3,
@@ -106,7 +124,7 @@ function initState(): State {
     importNote: 'Imported from a Lift Vault–style spreadsheet paste.',
   }
   const slots = seedSlots(program.id)
-  const cycle: CycleState = { id: 'c1', programId: program.id, currentWeek: 1, currentCycle: 2, deloadFlag: false }
+  const cycle: CycleState = { id: uid('c'), programId: program.id, currentWeek: 1, currentCycle: 2, deloadFlag: false }
   return {
     user,
     programs: [program],
@@ -120,6 +138,28 @@ function initState(): State {
     bodyWeights: seedBodyWeights(),
     pendingDraft: null,
   }
+}
+
+const STATE_KEY_PREFIX = 'e26-state-'
+const stateKey = (userId: string) => `${STATE_KEY_PREFIX}${userId}`
+
+// Load a user's persisted state, or seed a fresh one. Guests are never read
+// from storage — they always start clean.
+function loadOrSeed(account: AuthUser, isGuest: boolean): State {
+  if (!isGuest) {
+    try {
+      const raw = localStorage.getItem(stateKey(account.id))
+      if (raw) {
+        const parsed = JSON.parse(raw) as State
+        // Keep identity fields in sync with the account of record.
+        parsed.user = { ...parsed.user, id: account.id, email: account.email, name: account.name }
+        return parsed
+      }
+    } catch {
+      // Corrupt or unreadable — fall through to a fresh seed.
+    }
+  }
+  return seededState(account)
 }
 
 // ---- Selectors -------------------------------------------------------------
@@ -348,8 +388,28 @@ interface Ctx {
 
 const StoreContext = createContext<Ctx | null>(null)
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, initState)
+export function StoreProvider({
+  account,
+  isGuest = false,
+  children,
+}: {
+  account: AuthUser
+  isGuest?: boolean
+  children: React.ReactNode
+}) {
+  const [state, dispatch] = useReducer(reducer, { account, isGuest }, ({ account, isGuest }) =>
+    loadOrSeed(account, isGuest),
+  )
+
+  // Persist every change for real accounts. Guests are intentionally ephemeral.
+  useEffect(() => {
+    if (isGuest) return
+    try {
+      localStorage.setItem(stateKey(account.id), JSON.stringify(state))
+    } catch {
+      // Storage full or unavailable — non-fatal for the session.
+    }
+  }, [state, account.id, isGuest])
 
   const weightFor = (slotId: string, setIndex: number): number | null => {
     const slot = state.slots.find((s) => s.id === slotId)

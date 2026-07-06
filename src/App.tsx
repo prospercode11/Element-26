@@ -82,25 +82,36 @@ export default function App() {
 // ---- Signed-in app ---------------------------------------------------------
 
 function AppShell() {
+  const { state } = useStore()
+  // Onboarding is per-account, so every new sign-up starts with the tour → quiz
+  // (rather than sharing one global "seen it" flag across users on the device).
+  const uid = state.user.id
+  const tourKey = `e26-tour-done-${uid}`
+  const quizKey = `e26-quiz-done-${uid}`
+
   const [tab, setTab] = useState<Tab>('today')
   const [showPaywall, setShowPaywall] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [theme, toggleTheme] = useTheme()
   // First-launch flow: tour → quiz. Both replayable/skippable, both persisted.
-  const [tourOpen, setTourOpen] = useState(() => !localStorage.getItem('e26-tour-done'))
+  const [tourOpen, setTourOpen] = useState(() => !localStorage.getItem(tourKey))
   const [quizOpen, setQuizOpen] = useState(
-    () => !!localStorage.getItem('e26-tour-done') && !localStorage.getItem('e26-quiz-done'),
+    () => !!localStorage.getItem(tourKey) && !localStorage.getItem(quizKey),
   )
-  const { state } = useStore()
+
+  function openBuild() {
+    setShowPaywall(false)
+    setTab('build')
+  }
 
   function closeTour() {
-    localStorage.setItem('e26-tour-done', '1')
+    localStorage.setItem(tourKey, '1')
     setTourOpen(false)
-    if (!localStorage.getItem('e26-quiz-done')) setQuizOpen(true)
+    if (!localStorage.getItem(quizKey)) setQuizOpen(true)
   }
 
   function closeQuiz() {
-    localStorage.setItem('e26-quiz-done', '1')
+    localStorage.setItem(quizKey, '1')
     setQuizOpen(false)
   }
 
@@ -144,7 +155,7 @@ function AppShell() {
           <PaywallScreen onClose={() => setShowPaywall(false)} />
         ) : (
           <div key={tab} style={{ display: 'contents' }}>
-            {tab === 'today' && <TodayScreen tourActive={tourOpen || quizOpen} />}
+            {tab === 'today' && <TodayScreen tourActive={tourOpen || quizOpen} openBuild={openBuild} />}
             {tab === 'build' && (
               <BuildScreen
                 openPaywall={() => setShowPaywall(true)}
@@ -153,7 +164,7 @@ function AppShell() {
             )}
             {tab === 'science' && <ScienceScreen />}
             {tab === 'research' && <ResearchScreen openPaywall={() => setShowPaywall(true)} />}
-            {tab === 'progress' && <ProgressScreen />}
+            {tab === 'progress' && <ProgressScreen openBuild={openBuild} />}
           </div>
         )}
       </div>

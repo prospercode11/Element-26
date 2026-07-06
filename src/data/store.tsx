@@ -28,66 +28,6 @@ function uid(p: string): string {
 }
 
 const DAY_MS = 86_400_000
-const isoDaysAgo = (n: number) => new Date(Date.now() - n * DAY_MS).toISOString().slice(0, 10)
-
-// ---- Seed ------------------------------------------------------------------
-
-function seedSlots(programId: string): ProgramSlot[] {
-  const draft = parseImport(
-    'Wendler 5/3/1 Boring But Big\nWeek 1 65 75 85+\nWeek 2 70 80 90+\nWeek 3 75 85 95+\nBBB 5x10 @ 50%\nOHP Deadlift Bench Squat',
-  )!
-  return draft.slots.map((s) => ({ ...s, id: uid('slot'), programId }))
-}
-
-function seedTMHistory(userId: string): TrainingMax[] {
-  // A few cycles of history per lift to render an estimated-1RM trend.
-  const rows: [string, number[]][] = [
-    ['ex-squat', [285, 295, 305, 315]],
-    ['ex-bench', [200, 205, 210, 215]],
-    ['ex-deadlift', [355, 370, 385, 400]],
-    ['ex-ohp', [130, 133, 136, 140]],
-  ]
-  const out: TrainingMax[] = []
-  const base = new Date('2026-04-01')
-  rows.forEach(([exId, vals]) => {
-    vals.forEach((v, i) => {
-      const d = new Date(base)
-      d.setDate(base.getDate() + i * 21)
-      out.push({
-        id: uid('tm'),
-        userId,
-        exerciseId: exId,
-        value: v,
-        effectiveDate: d.toISOString().slice(0, 10),
-      })
-    })
-  })
-  return out
-}
-
-// Three weeks of completed sessions (4×/week pattern) so streak and history
-// render with real data. Rest-day gaps of up to 3 days keep a streak alive.
-function seedSessions(userId: string, programId: string): Session[] {
-  const offsets = [2, 3, 5, 6, 9, 10, 12, 13, 16, 17, 19, 20]
-  return offsets.map((daysAgo, i) => ({
-    id: uid('sess'),
-    userId,
-    programId,
-    week: 0, // historical — before the current cycle
-    day: (i % 4) + 1,
-    date: isoDaysAgo(daysAgo),
-    status: 'complete' as const,
-  }))
-}
-
-function seedBodyWeights(): BodyWeight[] {
-  const vals = [186.8, 186.2, 185.9, 185.1, 184.6, 184.9, 184.1, 183.6]
-  return vals.map((v, i) => ({
-    id: uid('bw'),
-    date: isoDaysAgo((vals.length - 1 - i) * 7),
-    value: v,
-  }))
-}
 
 interface State {
   user: User
@@ -103,10 +43,10 @@ interface State {
   pendingDraft: ImportDraft | null
 }
 
-// A fresh, fully-populated starting state for a given account — so a brand-new
-// user lands on a working app (a seeded 5/3/1 program, training-max history,
-// session streak) rather than empty screens.
-function seededState(account: AuthUser): State {
+// A brand-new account starts completely empty — no preset program, exercises,
+// training maxes, or history. The first-run tour and builder quiz guide the
+// user to create their first program from scratch (or import one).
+function emptyState(account: AuthUser): State {
   const user: User = {
     id: account.id,
     email: account.email,
@@ -114,28 +54,19 @@ function seededState(account: AuthUser): State {
     units: 'lb',
     isPro: false,
   }
-  const program: Program = {
-    id: uid('p'),
-    userId: user.id,
-    name: '5/3/1 Boring But Big',
-    lengthInWeeks: 3,
-    daysPerWeek: 4,
-    source: 'imported',
-    importNote: 'Imported from a Lift Vault–style spreadsheet paste.',
-  }
-  const slots = seedSlots(program.id)
-  const cycle: CycleState = { id: uid('c'), programId: program.id, currentWeek: 1, currentCycle: 2, deloadFlag: false }
   return {
     user,
-    programs: [program],
-    activeProgramId: program.id,
-    slots,
-    trainingMaxes: seedTMHistory(user.id),
-    sessions: seedSessions(user.id, program.id),
+    programs: [],
+    activeProgramId: '',
+    slots: [],
+    trainingMaxes: [],
+    sessions: [],
     setLogs: [],
-    cycle,
-    bookmarks: [{ id: uid('bm'), userId: user.id, studyId: 'st-2' }],
-    bodyWeights: seedBodyWeights(),
+    // A neutral cycle placeholder until the first program is created; it is
+    // replaced with a real one on commitDraft.
+    cycle: { id: uid('c'), programId: '', currentWeek: 1, currentCycle: 1, deloadFlag: false },
+    bookmarks: [],
+    bodyWeights: [],
     pendingDraft: null,
   }
 }
@@ -156,10 +87,10 @@ function loadOrSeed(account: AuthUser, isGuest: boolean): State {
         return parsed
       }
     } catch {
-      // Corrupt or unreadable — fall through to a fresh seed.
+      // Corrupt or unreadable — fall through to a fresh empty state.
     }
   }
-  return seededState(account)
+  return emptyState(account)
 }
 
 // ---- Selectors -------------------------------------------------------------
@@ -335,7 +266,8 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'advanceCycle': {
-      const prog = state.programs.find((p) => p.id === state.activeProgramId)!
+      const prog = state.programs.find((p) => p.id === state.activeProgramId)
+      if (!prog) return state
       const nextWeek = state.cycle.currentWeek + 1
       if (nextWeek > prog.lengthInWeeks) {
         return {

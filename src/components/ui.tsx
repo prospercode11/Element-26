@@ -34,6 +34,34 @@ export function LogoBadge() {
   )
 }
 
+// Shown on data screens before the user has created their first program.
+export function EmptyState({
+  icon,
+  title,
+  body,
+  actionLabel,
+  onAction,
+}: {
+  icon?: React.ReactNode
+  title: string
+  body: string
+  actionLabel?: string
+  onAction?: () => void
+}) {
+  return (
+    <div className="empty-state">
+      {icon && <div className="empty-ico">{icon}</div>}
+      <div className="empty-title">{title}</div>
+      <p className="empty-body">{body}</p>
+      {actionLabel && onAction && (
+        <button className="btn primary" onClick={onAction}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function Banner({
   kind = 'info',
   icon,

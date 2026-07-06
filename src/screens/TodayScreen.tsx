@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   CircleCheck,
+  Dumbbell,
   Flame,
   GalleryHorizontalEnd,
   Scale,
@@ -12,7 +13,7 @@ import {
   Timer,
   X,
 } from 'lucide-react'
-import { Banner, Card } from '../components/ui'
+import { Banner, Card, EmptyState } from '../components/ui'
 import ExercisePreview from '../components/ExercisePreview'
 import Gloss from '../components/Gloss'
 import {
@@ -45,7 +46,13 @@ function dayLabel(slots: ProgramSlot[], day: number): string {
 // The workout walkthrough auto-opens once per app load, after the tour closes.
 let autoPreviewShown = false
 
-export default function TodayScreen({ tourActive = false }: { tourActive?: boolean }) {
+export default function TodayScreen({
+  tourActive = false,
+  openBuild,
+}: {
+  tourActive?: boolean
+  openBuild?: () => void
+}) {
   const { state, dispatch, weightFor } = useStore()
   const week = state.cycle.currentWeek
   const days = daysInProgram(state)
@@ -118,6 +125,26 @@ export default function TodayScreen({ tourActive = false }: { tourActive?: boole
     })
     dispatch({ type: 'finishDay', week, day })
     setFinished(msgs.length ? msgs : ['Session logged. No auto-progression rules on today’s lifts.'])
+  }
+
+  if (state.programs.length === 0) {
+    return (
+      <div className="screen-pad">
+        <div className="row spread" style={{ marginBottom: 10 }}>
+          <h2 className="section">Today</h2>
+          <span className="tiny faint">
+            {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+          </span>
+        </div>
+        <EmptyState
+          icon={<Dumbbell size={30} />}
+          title="No workout yet"
+          body="You don't have a program yet. Build one in a few taps with the quick quiz, or import a spreadsheet — then your daily workout shows up here."
+          actionLabel={openBuild ? 'Build my first program' : undefined}
+          onAction={openBuild}
+        />
+      </div>
+    )
   }
 
   if (finished) {

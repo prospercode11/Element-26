@@ -208,28 +208,35 @@ function ImportTab({ openPaywall }: { openPaywall: () => void }) {
 
 function BuilderTab() {
   const { state } = useStore()
-  const prog = state.programs.find((p) => p.id === state.activeProgramId)!
-  const slots = state.slots.filter((s) => s.programId === prog.id)
+  const prog = state.programs.find((p) => p.id === state.activeProgramId)
+  const slots = prog ? state.slots.filter((s) => s.programId === prog.id) : []
 
   return (
     <>
       <SlotEditor />
-      <Card title={`${prog.name} — current structure`}>
-        {groupByWeekDay(slots.map((s) => s)).map(({ week, day, items }) => (
-          <div key={`${week}-${day}`} style={{ marginBottom: 12 }}>
-            <div className="tag-topic" style={{ marginBottom: 4 }}>Week {week} · Day {day}</div>
-            {items.map((s, i) => {
-              const ex = exerciseById(s.exerciseId)
-              return (
-                <div key={i} className="kv">
-                  <span className="k">{ex?.name} <span className="faint">· {s.label}</span></span>
-                  <span className="v small">{summarizeSets(s.sets)}</span>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </Card>
+      {prog ? (
+        <Card title={`${prog.name} — current structure`}>
+          {groupByWeekDay(slots.map((s) => s)).map(({ week, day, items }) => (
+            <div key={`${week}-${day}`} style={{ marginBottom: 12 }}>
+              <div className="tag-topic" style={{ marginBottom: 4 }}>Week {week} · Day {day}</div>
+              {items.map((s, i) => {
+                const ex = exerciseById(s.exerciseId)
+                return (
+                  <div key={i} className="kv">
+                    <span className="k">{ex?.name} <span className="faint">· {s.label}</span></span>
+                    <span className="v small">{summarizeSets(s.sets)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </Card>
+      ) : (
+        <Banner kind="info" icon={<Info size={16} />}>
+          You don't have an active program yet. Use <b>Import</b> to bring one in (or the
+          onboarding quiz to generate one) — once saved, its structure shows up here to tweak.
+        </Banner>
+      )}
     </>
   )
 }

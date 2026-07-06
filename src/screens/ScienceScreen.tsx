@@ -22,7 +22,8 @@ export default function ScienceScreen() {
 
   // Weekly working-sets per muscle, averaged across the program's weeks.
   const weeklyVolume = useMemo(() => {
-    const prog = state.programs.find((p) => p.id === state.activeProgramId)!
+    const prog = state.programs.find((p) => p.id === state.activeProgramId)
+    if (!prog) return {} as Partial<Record<MuscleGroup, number>>
     const totals: Partial<Record<MuscleGroup, number>> = {}
     state.slots
       .filter((s) => s.programId === prog.id)

@@ -1,14 +1,30 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
-import { Card } from '../components/ui'
+import { Plus, TrendingUp } from 'lucide-react'
+import { Card, EmptyState } from '../components/ui'
 import { useStore, latestTM, tmHistory, latestBodyWeight } from '../data/store'
 import { EXERCISES } from '../data/mock'
 import { estimated1RM } from '../data/progression'
 
-export default function ProgressScreen() {
+export default function ProgressScreen({ openBuild }: { openBuild?: () => void }) {
   const { state } = useStore()
-  const prog = state.programs.find((p) => p.id === state.activeProgramId)!
+  const prog = state.programs.find((p) => p.id === state.activeProgramId)
   const mains = EXERCISES.filter((e) => e.isMainLift)
+
+  if (!prog) {
+    return (
+      <div className="screen-pad">
+        <h2 className="section">Progress</h2>
+        <p className="lead">Training-max history, estimated 1RM trend, and where you are in the cycle.</p>
+        <EmptyState
+          icon={<TrendingUp size={30} />}
+          title="No history yet"
+          body="Once you create a program and start logging sessions, your training-max trend and cycle position show up here."
+          actionLabel={openBuild ? 'Build a program' : undefined}
+          onAction={openBuild}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="screen-pad">

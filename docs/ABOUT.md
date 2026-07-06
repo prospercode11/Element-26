@@ -56,14 +56,17 @@ implemented locally (no backend) in `src/data/auth.tsx`:
   and renders the tab bar (Today/Build/Science/Research/Progress), the
   dark/light theme toggle (persisted to `localStorage`), an account button
   (opens `ProfileSheet` for units + sign-out), and the first-launch flow
-  (tour → quiz, each skippable/replayable, gated on `localStorage` flags
-  `e26-tour-done` / `e26-quiz-done`).
+  (tour → quiz, each skippable/replayable, gated on **per-account**
+  `localStorage` flags `e26-tour-done-<userId>` / `e26-quiz-done-<userId>` so
+  every new sign-up gets onboarding). Screens with no active program yet
+  (Today, Progress) show an `EmptyState` with a "Build" call-to-action.
 - `src/data/auth.tsx` — `AuthProvider` / `useAuth`: local account store,
   password hashing, session restore, sign-up/in/out and guest mode.
 - `src/data/store.tsx` — a single React reducer holding all app state, keyed
-  to the signed-in account: seeded fresh from `src/data/mock.ts` with a 5/3/1
-  BBB program for new users, loaded from `localStorage` for returning ones,
-  and persisted on every change (except for guests).
+  to the signed-in account. New accounts start **completely empty** (no preset
+  program, exercises, training maxes, or history) — the first-run tour and
+  builder quiz create the first program from scratch or import one. Returning
+  accounts load from `localStorage`; every change persists (except guests).
 - `src/components/DeviceChrome.tsx` — the shared phone frame (notch + status
   bar) wrapping both the auth screen and the signed-in app.
 - `src/components/ProfileSheet.tsx` — account bottom-sheet: shows who's signed

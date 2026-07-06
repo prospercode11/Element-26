@@ -117,3 +117,29 @@ sign-up → app, password stored hashed (not plaintext), account/session/state
 written to localStorage, units change survives a reload, sign-out → auth
 screen, wrong password → error, sign-in → app, guest → app and correctly
 NOT persisted. `npx tsc -b` clean; full `npm run build` succeeds.
+
+## 2026-07-06 — New accounts start empty (no preset exercises) + onboarding
+Requested: The app must start with no preset exercises, so a new user begins
+with the tour and the workout planner/builder quiz.
+Changed:
+- `src/data/store.tsx` — replaced the seeded 5/3/1 starting state with
+  `emptyState()`: new accounts start with no programs, slots, training maxes,
+  sessions, bookmarks, or body-weight history (neutral cycle placeholder,
+  empty `activeProgramId`). Removed the now-unused seed helpers. `advanceCycle`
+  is defensive when there's no active program.
+- Onboarding is now **per-account**: `src/App.tsx` gates the tour/quiz on
+  `e26-tour-done-<userId>` / `e26-quiz-done-<userId>` (was global), so every
+  new sign-up gets the tour → quiz. The quiz's "build one for me" path creates
+  the first program from empty via `draftImport` + `commitDraft`.
+- Empty-state handling so nothing crashes with no program: new shared
+  `EmptyState` in `src/components/ui.tsx`; `TodayScreen` and `ProgressScreen`
+  show it with a "Build" CTA (new `openBuild` prop wired from `AppShell`);
+  `ScienceScreen` and `BuildScreen`'s visual builder guard their previously
+  non-null `programs.find(...)!` lookups.
+- `src/styles.css` — `.empty-state` / `.empty-ico` / `.empty-title` /
+  `.empty-body`.
+Verified in a headless browser: new sign-up starts empty (0 programs/slots/
+TMs/sessions); tour auto-shows then the quiz; the quiz "build for me" path
+creates a real program (1 program, 4 slots); Today/Progress empty states and
+their Build CTAs work; Science renders without crashing. `npx tsc -b` clean;
+full `npm run build` succeeds.

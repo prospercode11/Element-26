@@ -77,8 +77,9 @@ src/
 - Accounts (sign-up/in/out + guest) and per-user state are persisted locally in `localStorage`
   with no backend — passwords are salted + SHA-256 hashed (demo-grade, on-device only). The auth
   layer (`src/data/auth.tsx`) is written to be swappable for a Supabase/Firebase backend later.
-- State is a React reducer, seeded with a 5/3/1 BBB program for new accounts and reloaded from
-  `localStorage` for returning ones.
+- New accounts start empty (no preset program/exercises); the first-run tour and builder quiz
+  create the first program. State is a React reducer, reloaded from `localStorage` for returning
+  accounts.
 - AI Import uses deterministic recognizers so the demo is reproducible; production would run
   OCR + an LLM structuring pass server-side, then hand back the same review-before-save draft.
 - Study search queries a local index; production plan is PubMed API integration behind the same filters.

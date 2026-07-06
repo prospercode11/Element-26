@@ -4,6 +4,24 @@ Element 26 is a science-based lifting app with a no-code program builder. The
 name is iron's atomic number (26) — the branding leans on iron / periodic-table
 motifs.
 
+## Product principles (load-bearing — apply to all future work)
+
+- **Everything must be science-based.** Element 26's entire premise is that
+  programming, coaching, and content follow the strength & hypertrophy
+  research — evidence-graded, cited where possible (see the Science tab's
+  evidence scores and citations), and grounded in established findings
+  (volume landmarks MEV/MAV/MRV, load–goal matching, ~2×/week frequency,
+  progressive overload with autoregulation). No gym folklore, fads, or
+  pseudo-scientific claims. **AI-generated output must follow this too** — the
+  program-generation prompt (`api/generate-program.ts`) is explicitly
+  evidence-based, and any new AI feature should be as well.
+- **Target platform is iOS (App Store / IPA).** The web app is the prototype;
+  the shipping product is a native iOS app, planned via Capacitor (wraps this
+  exact web build in a WebView → Xcode project → IPA; needs a Mac + Xcode + an
+  Apple Developer account). Keep everything Capacitor-compatible: `localStorage`
+  persistence and the server-side AI proxy both run unchanged inside the
+  WebView, so no rework is needed when wrapping.
+
 This repo is a working interactive prototype (React + TypeScript + Vite). It
 runs in the browser inside a phone frame and implements five product pillars:
 

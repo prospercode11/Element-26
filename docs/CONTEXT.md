@@ -177,3 +177,14 @@ Verified in a headless browser with a mocked proxy: success path commits the
 AI-generated program; a 500 from the proxy falls back to a template; and the
 built frontend bundle contains no "anthropic" reference (key/SDK stay
 server-side). `npx tsc -b` clean; full `npm run build` succeeds.
+
+## 2026-07-06 — Recorded standing directions: science-based + iOS target
+Requested: Note that the app will be turned into an iOS app and that everything
+needs to be science-based.
+Changed: Added a load-bearing "Product principles" section to `docs/ABOUT.md`
+capturing both as durable constraints for all future work. Acted on the
+science-based directive concretely by strengthening the AI program-generation
+system prompt (`api/generate-program.ts`) with an explicit evidence-based core
+principle (volume landmarks MEV/MAV/MRV, load–goal matching, ~2x/week
+frequency, progressive overload + autoregulation, no fads/pseudo-science) and
+a requirement to state the evidence-based rationale in the program's notes.

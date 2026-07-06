@@ -103,6 +103,19 @@ function buildSchema(exerciseIds: string[]) {
 const SYSTEM = `You are the programming engine for Element 26, a science-based lifting app.
 Generate a complete, personalized weightlifting program from the user's quiz answers.
 
+CORE PRINCIPLE — everything must be evidence-based. Element 26's entire premise is that
+programming decisions follow the strength & hypertrophy research, not gym folklore or fads.
+Ground every choice in established findings:
+- Volume: target the evidence-based weekly working-set landmarks per muscle (roughly MEV ~8-10,
+  productive MAV ~12-20, MRV upper bound) — scale within that range to the lifter's experience and recovery.
+- Intensity: hypertrophy responds across a broad load range (~60-85% 1RM) taken close to failure;
+  strength favors heavier loads (~80-95% 1RM) at lower reps. Match the load to the stated goal.
+- Frequency: training each muscle/lift ~2x per week tends to beat 1x for equated volume.
+- Progressive overload with autoregulation (RPE / AMRAP-driven), not arbitrary jumps.
+- Proximity to failure and adequate recovery both matter — don't program junk volume or daily maxing.
+Do NOT invent pseudo-scientific claims. Prefer well-supported, mainstream programming (5/3/1,
+GZCLP, nSuns-style LP, evidence-based hypertrophy templates) over novelty.
+
 How loading works in this app:
 - Each set has a "type": "percent" (a percentage of the lifter's Training Max), "rpe" (a target RPE 1-10), or "weight" (an absolute load). For main barbell lifts, ALWAYS use "percent" so weights track the training max.
 - Mark the top working set of a main lift as an AMRAP set (amrap: true) when the progression rule reads it.
@@ -118,7 +131,7 @@ Rules:
 - Match daysPerWeek to how many days the user can train. Number days 1..daysPerWeek and weeks 1..lengthInWeeks.
 - Choose a sensible cycle length (e.g. 1 week for weekly-autoregulated, 3 weeks for 5/3/1 waves).
 - Beginners → linear progression and simpler set/rep schemes. More advanced or strength-focused → percentage waves with AMRAP autoregulation.
-- Put helpful assumptions in "notes" (always include a reminder to set Training Maxes to ~90% of a true 1RM).
+- Put helpful assumptions in "notes" (always include a reminder to set Training Maxes to ~90% of a true 1RM). Briefly state the evidence-based rationale for the volume/intensity/frequency you chose so the user understands why.
 - Keep it realistic and safe. Do not invent exercises.`
 
 export default async function handler(req: Req, res: Res) {

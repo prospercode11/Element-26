@@ -94,6 +94,35 @@ implemented locally (no backend) in `src/data/auth.tsx`:
   animated line-art pictograms per exercise (body in current text color,
   bar/load in the ember accent) used in the exercise library and previews.
 
+## AI features (Claude API)
+
+Some features are powered by the Claude API (`claude-opus-4-8`). Because the app
+is a static site, the API key **must never ship in the frontend** — so all
+Claude calls go through a small server-side proxy:
+
+```
+browser / future iOS app  ──fetch──▶  serverless proxy (holds ANTHROPIC_API_KEY)  ──▶  Claude API
+```
+
+- `api/generate-program.ts` — a **Vercel serverless function** that holds
+  `ANTHROPIC_API_KEY` and calls Claude with structured outputs (a JSON schema
+  mirroring `ImportDraft`) to generate a personalized program. This is the only
+  code that talks to Anthropic. Set the key in the Vercel project's Environment
+  Variables; `vercel.json` gives the function a 60s max duration.
+- `src/data/ai.ts` — the frontend client. It `fetch`es the proxy (never the
+  Claude API), so the SDK and the key are never in the browser bundle. Endpoint
+  resolves to same-origin `/api/generate-program`, or `VITE_AI_ENDPOINT` when
+  the app and proxy are hosted separately (e.g. app on GitHub Pages + proxy on
+  Vercel).
+- **Used by:** the onboarding builder quiz (`Quiz.tsx`) — its "build one for me"
+  path generates a real, personalized program via Claude, and **falls back to a
+  proven template** if the proxy is unreachable (no key, offline, etc.). The
+  store accepts an AI-generated draft via the `setDraft` action, then commits it
+  exactly like a parsed import.
+- `.env.example` documents the server (`ANTHROPIC_API_KEY`, `ALLOWED_ORIGIN`)
+  and frontend (`VITE_AI_ENDPOINT`) variables. The same proxy works unchanged
+  inside a future Capacitor/WebView iOS build.
+
 ## Deployment
 
 The app is deployed to GitHub Pages: `.github/workflows/deploy-pages.yml`

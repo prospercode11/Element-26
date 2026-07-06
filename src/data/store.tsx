@@ -154,6 +154,7 @@ type Action =
   | { type: 'setUnits'; units: Units }
   | { type: 'upgradePro' }
   | { type: 'draftImport'; text: string }
+  | { type: 'setDraft'; draft: ImportDraft }
   | { type: 'clearDraft' }
   | { type: 'commitDraft'; name: string }
   | { type: 'setTM'; exerciseId: string; value: number }
@@ -173,6 +174,9 @@ function reducer(state: State, action: Action): State {
 
     case 'draftImport':
       return { ...state, pendingDraft: parseImport(action.text) }
+
+    case 'setDraft':
+      return { ...state, pendingDraft: action.draft }
 
     case 'clearDraft':
       return { ...state, pendingDraft: null }

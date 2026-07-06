@@ -143,3 +143,37 @@ TMs/sessions); tour auto-shows then the quiz; the quiz "build for me" path
 creates a real program (1 program, 4 slots); Today/Progress empty states and
 their Build CTAs work; Science renders without crashing. `npx tsc -b` clean;
 full `npm run build` succeeds.
+
+## 2026-07-06 — Integrated the Claude API (AI program generation via a proxy)
+Requested: Put the Claude API into the app to generate training plans and other
+AI features. Chosen: Vercel backend; first feature = quiz → custom program.
+Changed: Added a server-side proxy so the API key never ships in the static
+frontend (hard security requirement — the SDK refuses to run in a browser).
+- NEW `api/generate-program.ts` — Vercel serverless function. Holds
+  `ANTHROPIC_API_KEY`, calls `claude-opus-4-8` with adaptive thinking + effort
+  "medium" and structured outputs (a JSON schema mirroring `ImportDraft`, with
+  the `exerciseId` enum built from the catalog the client posts). Returns a
+  draft. CORS-enabled (configurable `ALLOWED_ORIGIN`); handles the `refusal`
+  stop reason.
+- NEW `src/data/ai.ts` — frontend client that `fetch`es the proxy (never the
+  Claude API). Endpoint = `VITE_AI_ENDPOINT` or same-origin
+  `/api/generate-program`. Sends quiz answers, units, the exercise catalog, and
+  current training maxes; returns an `ImportDraft`.
+- `src/data/store.tsx` — added a `setDraft` action so an AI-generated draft can
+  be set as `pendingDraft` and committed like a parsed import.
+- `src/components/Quiz.tsx` — the "build one for me" result path now calls
+  `generateProgram()` ("Generate my plan with AI" button + spinner) and commits
+  the AI draft; on any proxy error it silently falls back to the template path.
+- `package.json` — added `@anthropic-ai/sdk` (^0.110.0, server-only; the
+  frontend uses `fetch`). `@types/node` devDep for the function.
+- NEW `src/vite-env.d.ts` (types `import.meta.env.VITE_AI_ENDPOINT`),
+  `vercel.json` (60s function max duration), `.env.example` (documents
+  `ANTHROPIC_API_KEY`/`ALLOWED_ORIGIN`/`VITE_AI_ENDPOINT`).
+- `node_modules/` was intentionally NOT committed for this change — the deploy
+  workflow runs `npm ci`, and the local install pulled platform-specific
+  binaries that would pollute the committed tree; `package-lock.json` records
+  the exact versions.
+Verified in a headless browser with a mocked proxy: success path commits the
+AI-generated program; a 500 from the proxy falls back to a template; and the
+built frontend bundle contains no "anthropic" reference (key/SDK stay
+server-side). `npx tsc -b` clean; full `npm run build` succeeds.

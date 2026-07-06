@@ -80,8 +80,12 @@ src/
 - New accounts start empty (no preset program/exercises); the first-run tour and builder quiz
   create the first program. State is a React reducer, reloaded from `localStorage` for returning
   accounts.
-- AI Import uses deterministic recognizers so the demo is reproducible; production would run
-  OCR + an LLM structuring pass server-side, then hand back the same review-before-save draft.
+- The onboarding quiz can generate a personalized program with the Claude API (`claude-opus-4-8`)
+  through a server-side proxy (`api/generate-program.ts`, Vercel) that holds `ANTHROPIC_API_KEY` —
+  the key never ships in the frontend. It falls back to a template if the proxy is unreachable.
+  See `docs/ABOUT.md` → "AI features" and `.env.example`.
+- AI Import still uses deterministic recognizers so the demo is reproducible; production would run
+  OCR + an LLM structuring pass through the same proxy, then hand back the same review-before-save draft.
 - Study search queries a local index; production plan is PubMed API integration behind the same filters.
 - Intentionally out of scope for v1 (per spec): social feed, from-scratch AI coach, Watch app,
   form-check video library, nutrition tracking, streaks/gamification, a general scripting escape hatch.

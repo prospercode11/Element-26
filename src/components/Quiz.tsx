@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ArrowRight, Check, ChevronLeft, FileSpreadsheet, TrendingUp } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, FileSpreadsheet, LoaderCircle, Sparkles, TrendingUp } from 'lucide-react'
 import { useStore } from '../data/store'
 import { SAMPLE_PASTES } from '../data/importParser'
+import { generateProgram, mainLiftTMs } from '../data/ai'
 
 // Onboarding quiz: four taps → a recommended, ready-to-run program built from
 // the same templates the importer understands. Runs once after the tour.
@@ -111,9 +112,10 @@ export default function Quiz({
   onClose: () => void
   onImport: () => void
 }) {
-  const { dispatch } = useStore()
+  const { state, dispatch } = useStore()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
+  const [busy, setBusy] = useState(false)
   const atResult = step >= QUESTIONS.length
 
   function pick(id: keyof Answers, v: string) {
@@ -121,7 +123,8 @@ export default function Quiz({
     window.setTimeout(() => setStep((s) => s + 1), 180)
   }
 
-  function createPlan() {
+  // Fall back to the template library if AI generation isn't available or fails.
+  function createFromTemplate() {
     const rec = recommend(answers)
     const tpl = SAMPLE_PASTES.find((s) => s.label === rec.template)
     if (tpl) {
@@ -129,6 +132,27 @@ export default function Quiz({
       dispatch({ type: 'commitDraft', name: rec.label })
     }
     onClose()
+  }
+
+  // Primary path: generate a personalized program with Claude (via our proxy).
+  async function createPlan() {
+    if (busy) return
+    setBusy(true)
+    try {
+      const draft = await generateProgram({
+        answers: answers as Record<string, string>,
+        units: state.user.units,
+        trainingMaxes: mainLiftTMs(state),
+      })
+      dispatch({ type: 'setDraft', draft })
+      dispatch({ type: 'commitDraft', name: draft.detected })
+      setBusy(false)
+      onClose()
+    } catch {
+      // Couldn't reach the AI service — quietly build from a proven template.
+      setBusy(false)
+      createFromTemplate()
+    }
   }
 
   return (
@@ -186,7 +210,7 @@ export default function Quiz({
             </button>
           </div>
         ) : (
-          <ResultSlide answers={answers} onCreate={createPlan} onClose={onClose} />
+          <ResultSlide answers={answers} onCreate={createPlan} onClose={onClose} busy={busy} />
         )}
       </div>
     </div>
@@ -197,10 +221,12 @@ function ResultSlide({
   answers,
   onCreate,
   onClose,
+  busy,
 }: {
   answers: Answers
   onCreate: () => void
   onClose: () => void
+  busy: boolean
 }) {
   const rec = recommend(answers)
   const note = goalNote(answers)
@@ -219,11 +245,20 @@ function ResultSlide({
       {note && (
         <p className="tiny faint" style={{ marginTop: 6, lineHeight: 1.55 }}>{note}</p>
       )}
-      <button className="btn primary full" style={{ marginTop: 18 }} onClick={onCreate}>
-        Create my plan
-        <ArrowRight size={16} />
+      <button className="btn primary full" style={{ marginTop: 18 }} onClick={onCreate} disabled={busy}>
+        {busy ? (
+          <>
+            <LoaderCircle size={16} className="spin" />
+            Building your program…
+          </>
+        ) : (
+          <>
+            <Sparkles size={16} />
+            Generate my plan with AI
+          </>
+        )}
       </button>
-      <button className="btn ghost full mt8" onClick={onClose}>
+      <button className="btn ghost full mt8" onClick={onClose} disabled={busy}>
         I’ll pick later
       </button>
     </div>
